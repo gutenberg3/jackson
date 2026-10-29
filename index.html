@@ -197,42 +197,43 @@ const FLIGHT=/\b(flight|flights|fly|flying|lands?|landing|airport|takeoff|depart
 const WD={sun:0,mon:1,tue:2,tues:2,wed:3,thu:4,thur:4,thurs:4,fri:5,sat:6};
 const MON={jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,sept:9,oct:10,nov:11,dec:12};
 const pad=n=>String(n).padStart(2,"0");
+const cut=(s,m)=>s.slice(0,m.index)+" ".repeat(m[0].length)+s.slice(m.index+m[0].length);
 const clampDay=d=>{ if(!d) return (today>=TRIP.start&&today<=TRIP.end)?today:TRIP.start; if(d<TRIP.start) return TRIP.start; if(d>TRIP.end) return TRIP.end; return d };
 function parse(raw){
   let s=" "+raw.trim()+" ", r={kind:"note",day:"",time:"",who:[],link:"",flights:[],what:""};
   const url=s.match(/https?:\/\/\S+|\b[\w-]+\.(?:com|org|net|co|io|ai|gov|me|ly)\b\S*/i);
   let host="";
-  if(url){ r.link=url[0].startsWith("http")?url[0]:"https://"+url[0]; s=s.replace(url[0]," "); try{host=new URL(r.link).hostname.replace(/^www\./,"")}catch(e){} }
+  if(url){ r.link=url[0].startsWith("http")?url[0]:"https://"+url[0]; s=cut(s,url); try{host=new URL(r.link).hostname.replace(/^www\./,"")}catch(e){} }
   for(const m of [...s.matchAll(new RegExp(`\\b(?:(${CODES})|(${NAMES}))\\s?-?#?(\\d{2,4})\\b`,"gi"))]){
     const code=m[1]?m[1].toUpperCase():Object.keys(AIRLINES).find(k=>AIRLINES[k]===m[2].toLowerCase());
-    r.flights.push(code+m[3]); s=s.replace(m[0]," ");
+    r.flights.push(code+m[3]); s=cut(s,m);
   }
   let m;
   // day
-  if((m=s.match(/\b(today|tonight)\b/i))){ r.day=today; if(m[1].toLowerCase()==="tonight") r.time="19:00"; s=s.replace(m[0]," "); }
-  else if((m=s.match(/\b(tomorrow|tmrw|tmw|tomorow)\b/i))){ r.day=addDays(today,1); s=s.replace(m[0]," "); }
-  else if((m=s.match(/\b(?:next\s+|this\s+)?(sun|mon|tue|tues|wed|thu|thur|thurs|fri|sat)(?:day|sday|nesday|rsday|urday)?\b/i))){ const w=WD[m[1].toLowerCase()]; r.day=DAYS.find(d=>new Date(d+"T12:00:00").getDay()===w)||""; s=s.replace(m[0]," "); }
-  else if((m=s.match(/\b(jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\.?\s+(\d{1,2})(?:st|nd|rd|th)?\b/i))){ r.day=`2026-${pad(MON[m[1].toLowerCase().slice(0,4)]||MON[m[1].toLowerCase().slice(0,3)])}-${pad(+m[2])}`; s=s.replace(m[0]," "); }
-  else if((m=s.match(/\b(\d{1,2})\/(\d{1,2})\b/))){ r.day=`2026-${pad(+m[1])}-${pad(+m[2])}`; s=s.replace(m[0]," "); }
+  if((m=s.match(/\b(today|tonight)\b/i))){ r.day=today; if(m[1].toLowerCase()==="tonight") r.time="19:00"; s=cut(s,m); }
+  else if((m=s.match(/\b(tomorrow|tmrw|tmw|tomorow)\b/i))){ r.day=addDays(today,1); s=cut(s,m); }
+  else if((m=s.match(/\b(?:next\s+|this\s+)?(sun|mon|tue|tues|wed|thu|thur|thurs|fri|sat)(?:day|sday|nesday|rsday|urday)?\b/i))){ const w=WD[m[1].toLowerCase()]; r.day=DAYS.find(d=>new Date(d+"T12:00:00").getDay()===w)||""; s=cut(s,m); }
+  else if((m=s.match(/\b(jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\.?\s+(\d{1,2})(?:st|nd|rd|th)?\b/i))){ r.day=`2026-${pad(MON[m[1].toLowerCase().slice(0,4)]||MON[m[1].toLowerCase().slice(0,3)])}-${pad(+m[2])}`; s=cut(s,m); }
+  else if((m=s.match(/\b(\d{1,2})\/(\d{1,2})\b/))){ r.day=`2026-${pad(+m[1])}-${pad(+m[2])}`; s=cut(s,m); }
   s=s.replace(/\b(\d{1,2})\/(\d{1,2})\b/g," "); // second date form, drop
   // time
   const evening=EVENING.test(s), morning=MORNING.test(s);
   const guessAP=h=>{ if(h>12) return h; if(h===12) return 12; if(morning) return h; if(evening) return h+12; return h<=6?h+12:h };
-  if((m=s.match(/\b(\d{1,2})(?::?(\d{2}))?\s*(am|pm|a\.m\.|p\.m\.|a|p)\b/i))&&(!m[2]||+m[2]<60)){ let h=+m[1]%12; if(m[3][0].toLowerCase()==="p") h+=12; r.time=`${pad(h)}:${m[2]||"00"}`; s=s.replace(m[0]," "); }
-  else if((m=s.match(/\b(\d{1,2}):(\d{2})\b/))){ r.time=`${pad(guessAP(+m[1]))}:${m[2]}`; s=s.replace(m[0]," "); }
-  else if((m=s.match(/\b(\d{1,2})(\d{2})\b/))&&+m[1]<=12&&+m[2]<60&&m[0].length>=3){ r.time=`${pad(guessAP(+m[1]))}:${m[2]}`; s=s.replace(m[0]," "); }
-  else if((m=s.match(/\bnoon\b/i))){ r.time="12:00"; s=s.replace(m[0]," "); }
-  else if((m=s.match(/\bmidnight\b/i))){ r.time="00:00"; s=s.replace(m[0]," "); }
-  else if(!r.time&&(m=s.match(/(?:^|\s|@)(\d{1,2})(?=\s*$|\s+(?:with|w\/?|for|and|&|everyone|all|me|[A-Z]))/))&&+m[1]>=1&&+m[1]<=12){ r.time=`${pad(guessAP(+m[1]))}:00`; s=s.replace(m[0]," "); }
-  else if(!r.time&&(m=s.match(/\b(night|evening)\b/i))){ r.time="19:00"; s=s.replace(m[0]," "); }
-  else if(!r.time&&(m=s.match(/\b(morning|early)\b/i))){ r.time="09:00"; s=s.replace(m[0]," "); }
+  if((m=s.match(/\b(\d{1,2})(?::?(\d{2}))?\s*(am|pm|a\.m\.|p\.m\.|a|p)\b/i))&&(!m[2]||+m[2]<60)){ let h=+m[1]%12; if(m[3][0].toLowerCase()==="p") h+=12; r.time=`${pad(h)}:${m[2]||"00"}`; s=cut(s,m); }
+  else if((m=s.match(/\b(\d{1,2}):(\d{2})\b/))){ r.time=`${pad(guessAP(+m[1]))}:${m[2]}`; s=cut(s,m); }
+  else if((m=s.match(/\b(\d{1,2})(\d{2})\b/))&&+m[1]<=12&&+m[2]<60&&m[0].length>=3){ r.time=`${pad(guessAP(+m[1]))}:${m[2]}`; s=cut(s,m); }
+  else if((m=s.match(/\bnoon\b/i))){ r.time="12:00"; s=cut(s,m); }
+  else if((m=s.match(/\bmidnight\b/i))){ r.time="00:00"; s=cut(s,m); }
+  else if(!r.time&&(m=s.match(/(?:^|\s|@)(\d{1,2})(?=\s*$|\s+(?:with|w\/?|for|and|&|everyone|all|me|[A-Z]))/))&&+m[1]>=1&&+m[1]<=12){ r.time=`${pad(guessAP(+m[1]))}:00`; s=cut(s,m); }
+  else if(!r.time&&(m=s.match(/\b(night|evening)\b/i))){ r.time="19:00"; s=cut(s,m); }
+  else if(!r.time&&(m=s.match(/\b(morning|early)\b/i))){ r.time="09:00"; s=cut(s,m); }
   // people (don't strip names from the text unless they're a trailing "with …" tail)
   if(/\b(everyone|everybody|all of us|all)\b/i.test(s)) r.who=["ALL"];
   for(const p of PEOPLE) if(new RegExp(`\\b${p}(?:'s)?\\b`,"i").test(s)&&!r.who.includes("ALL")) r.who.push(p);
   if((/\b(me|my|i|myself|us|we)\b/i.test(s)||(/\b(with|w\/?)\s/i.test(s)&&r.who.length))&&me&&!r.who.includes("ALL")&&!r.who.includes(me)) r.who.push(me);
   const NM=`(?:${PEOPLE.join("|")}|me|everyone|everybody|all of us|all|us)`;
-  s=s.replace(new RegExp(`\\s+(?:with|w\\/?|for|&|and|\\+|,)?\\s*${NM}(?:\\s*(?:and|&|\\+|,)\\s*${NM})*\\s*$`,"i")," ");
-  s=s.replace(new RegExp(`^\\s*${NM}(?:\\s*(?:and|&|\\+|,)\\s*${NM})*\\s+(?:will|are|is)?\\s*`,"i")," ");
+  s=s.replace(new RegExp(`\\s+(?:with|w\\/?|for|&|and|\\+|,)?\\s*${NM}(?:\\s*(?:and|&|\\+|,)?\\s*${NM})*\\s*$`,"i")," ");
+  s=s.replace(new RegExp(`^\\s*${NM}(?:\\s*(?:and|&|\\+|,)?\\s*${NM})*\\s+(?:will|are|is)?\\s*`,"i")," ");
   // kind
   const kt=s+" "+host.replace(/[.-]/g," ").replace(/(grill|bistro|cafe|pizza|bar|bakery|steak|sushi|tacos?|kitchen|eatery|dining|restaurant|diner|brew)/gi," $1 ");
   if(r.flights.length) r.kind="flight"; else if(FOOD.test(kt)) r.kind="food"; else if(FLIGHT.test(kt)) r.kind="flight"; else if(STAY.test(kt)) r.kind="stay"; else if(PLAN.test(kt)) r.kind="plan";
@@ -246,10 +247,10 @@ function parse(raw){
   r.day=clampDay(r.day);
   const names=r.who[0]==="ALL"?"Everyone":r.who.join(" & ");
   const cap=t=>t.charAt(0).toUpperCase()+t.slice(1);
-  if(r.kind==="flight"){
+  if(r.flights.length){
     const home=/\b(home|fly out|leave|leaving|depart\w*|back)\b/i.test(raw), conn=/\b(connect\w*|layover|then)\b/i.test(raw);
     r.title=`${names} ${home?"fly home":conn?"connect":"land"}`; r.detail=r.what===r.flights.join(" → ")||!r.what?"":cap(r.what);
-  } else { r.title=cap(r.what); r.detail=""; }
+  } else { r.title=cap(r.what.replace(/^(breakfast|brunch|lunch|dinner|supper|coffee|drinks?|cocktails?|beers?)\s+(?!at\b|with\b|w\b|for\b|and\b)(?=\S)/i,"$1 at ")); r.detail=""; }
   return r;
 }
 
@@ -279,19 +280,31 @@ function showPreview(){
   if(!v){prev.innerHTML="";return}
   const r=parse(v);
   prev.innerHTML=[`<span class="kind">${r.kind}</span>`,`<b>${dowS(r.day)} ${md(r.day)}</b>`,r.time?`<b>${t12(r.time)}</b>`:"all day",
-    r.flights.length?`<span class="fl">${r.flights.join(", ")}</span>`:"",r.link?"link":"",r.who[0]==="ALL"?"everyone":r.who.join(" · "),r.title?`“${esc(r.title)}”`:""].filter(Boolean).join("<span>·</span>");
+    r.flights.length?`<span class="fl">${r.flights.join(", ")}</span>`:"",r.link?"link":(r.flights.length?"google":(guessLink(r)?"maps":"")),r.who[0]==="ALL"?"everyone":r.who.join(" · "),r.title?`“${esc(r.title)}”`:""].filter(Boolean).join("<span>·</span>");
 }
 inp.addEventListener("input",showPreview);
 $("entry").addEventListener("submit",e=>{e.preventDefault();submitEntry()});
 const names=r=>r.who[0]==="ALL"?"Everyone":r.who.join(" & ");
+// best-guess link: Google Maps for named places, nothing for generic chores
+const GENERIC=/\b(breakfast|brunch|lunch|dinner|supper|coffee|drinks?|cocktails?|beers?|eat|food|snacks?|groceries|grocery|shopping|shop|nap|rest|pack|packing|laundry|pick ?up|drop ?off|rental|car|check[- ]?in|check[- ]?out|checkout|checkin|home|airbnb|hotel|drive|driving|hike|hiking|walk|sledding|sled|snowboard\w*|ski\w*|lesson|tour|reservation|rez|call|text|bring|buy|get|meet|pizza|tacos?|sushi|steak|bbq|ice cream|dessert|a|an|the|at|in|on|to|for|with|and|of|out|up|go|grab|some|our|my|kids?|sunrise|sunset|morning|evening|night|early|late)\b/gi;
+const PLACEHINT=/\b(grill|bistro|cafe|café|bar|saloon|inn|lodge|tavern|kitchen|eatery|bakery|brewery|brewing|restaurant|diner|house|room|club|market|springs?|refuge|park|village|tram|lake|pass|canyon|falls|museum|church|chapel|square|resort|ranch|trail|teton|yellowstone|moose|jenny|signal|oxbow|mormon row|snake river|blue lion|mangy|million dollar|nora|persephone|cowboy)\b/i;
+function guessLink(r){
+  if(r.link) return r.link;
+  if(!["food","plan","stay","note"].includes(r.kind)) return "";
+  const t=r.title||"";
+  const rest=t.replace(GENERIC," ").replace(/[^a-z0-9' ]/gi," ").replace(/\s+/g," ").trim();
+  const named=PLACEHINT.test(t)||/(^|\s)[A-Z][a-z]/.test(t.replace(/^\S+\s?/,""))||(r.kind!=="note"&&rest.split(" ").filter(w=>w.length>2).length>=2);
+  if(!rest||!named) return "";
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(rest+" Jackson Hole WY")}`;
+}
 async function submitEntry(){
   const v=inp.value.trim(); if(!v) return;
   const r=parse(v); if(!r.title){ inp.focus(); return } inp.value=""; showPreview();
   const whoStr=r.who[0]==="ALL"?"ALL":r.who.join(";");
   const made=[];
   if(r.flights.length){
-    for(const f of r.flights) made.push({id:"i"+Date.now().toString(36)+Math.random().toString(36).slice(2,5),kind:"flight",day:r.day,time:r.flights.length===1?r.time:"",title:r.flights.length>1&&f!==r.flights[r.flights.length-1]?`${names(r)} connect`:r.title,what:r.detail?`${f} · ${r.detail}`:f,who:whoStr,link:r.link||gf(f,r.day),meta:null});
-  } else made.push({id:"i"+Date.now().toString(36)+Math.random().toString(36).slice(2,5),kind:r.kind,day:r.day,time:r.time,title:r.title,what:r.detail,who:whoStr,link:r.link,meta:null});
+    for(const f of r.flights) made.push({id:"i"+Date.now().toString(36)+Math.random().toString(36).slice(2,5),kind:"flight",day:r.day,time:r.flights.length===1?r.time:"",title:r.flights.length>1&&f!==r.flights[r.flights.length-1]?`${names(r)} connect`:r.title.replace(/ connect$/," land"),what:r.detail?`${f} · ${r.detail}`:f,who:whoStr,link:r.link||gf(f,r.day),meta:null});
+  } else made.push({id:"i"+Date.now().toString(36)+Math.random().toString(36).slice(2,5),kind:r.kind,day:r.day,time:r.time,title:r.title,what:r.detail,who:whoStr,link:guessLink(r),meta:null});
   items.push(...made); render();
   for(const it of made){ try{ await upsert(it); setSync("saved") }catch(e){ setSync("not saved",true) } }
 }
