@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f1110">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Jackson Hole</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;1,9..144,300&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0f1110; --bg-2:#161917; --line:#262a27; --line-2:#333834;
+    --ink:#ece7dc; --ink-2:#a6a398; --ink-3:#8c8b80;
+    --rust:#d2672f; --sage:#9bb28a; --sky:#8fb6d8; --gold:#d9a84a;
+    --serif:"Fraunces",Georgia,serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace; --sans:"Inter",system-ui,-apple-system,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{background:var(--bg)}
+  body{margin:0;color:var(--ink);font:15px/1.45 var(--sans);-webkit-font-smoothing:antialiased;min-height:100vh;
+    background:radial-gradient(1200px 500px at 50% -20%,rgba(210,103,47,.12),transparent 65%),var(--bg)}
+  a{color:inherit}
+  button,input,select{font:inherit;color:inherit}
+  button{cursor:pointer;background:none;border:0;padding:0}
+  :focus-visible{outline:1px solid var(--sage);outline-offset:3px}
+  .wrap{max-width:760px;margin:0 auto;padding:0 20px}
+
+  /* masthead */
+  .mast{padding:34px 0 18px;border-bottom:1px solid var(--line)}
+  .mast h1{font-family:var(--serif);font-weight:300;font-size:46px;line-height:.95;letter-spacing:-.02em;margin:0}
+  .mast h1 em{font-style:italic;color:var(--rust)}
+  .mast .line{display:flex;flex-wrap:wrap;gap:4px 18px;margin-top:14px;font-family:var(--mono);font-size:12px;color:var(--ink-2);letter-spacing:.02em}
+  .mast .line a{color:var(--ink-2);text-decoration:none;border-bottom:1px solid var(--line-2)}
+  .mast .line a:hover{color:var(--ink);border-color:var(--ink-2)}
+
+  /* who + entry */
+  .who{display:flex;flex-wrap:wrap;gap:0 2px;padding:8px 0 0;align-items:center}
+  .who .k{font-family:var(--mono);font-size:11px;color:var(--ink-3);margin-right:10px;letter-spacing:.08em}
+  .who button{font-family:var(--mono);font-size:13px;color:var(--ink-3);padding:12px 10px;border-radius:4px;letter-spacing:.02em;min-height:44px}
+  .who button:hover{color:var(--ink-2)}
+  .who button.on{color:var(--bg);background:var(--ink)}
+  .who.nudge button:not(.on){color:var(--gold)}
+  .entry{position:relative;margin:10px 0 6px}
+  .entry input{width:100%;background:var(--bg-2);border:1px solid var(--line-2);border-radius:8px;padding:15px 52px 15px 16px;font-size:17px;color:var(--ink);font-family:var(--sans)}
+  .entry input::placeholder{color:var(--ink-3)}
+  .entry input:focus{outline:0;border-color:var(--ink-3)}
+  .entry .go{position:absolute;right:6px;top:6px;bottom:6px;width:44px;border-radius:6px;background:var(--rust);color:#1a0d06;font-weight:600;font-size:18px;opacity:0;transition:opacity .15s}
+  .entry.has .go{opacity:1}
+  .preview{display:flex;flex-wrap:wrap;gap:6px 14px;min-height:18px;font-family:var(--mono);font-size:13px;color:var(--ink-3);padding:0 2px 10px;letter-spacing:.02em}
+  .preview b{font-weight:500;color:var(--ink)}
+  .preview .kind{color:var(--sage)}
+  .preview .fl{color:var(--sky)}
+
+  /* days */
+  .day{padding:22px 0 6px}
+  .day h2{font-family:var(--serif);font-weight:300;font-size:30px;line-height:1;margin:0 0 8px;letter-spacing:-.01em;display:flex;align-items:baseline;gap:12px}
+  .day h2 small{font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--ink-3);text-transform:uppercase;font-weight:400}
+  .day.today h2 small{color:var(--rust)}
+  .day.today h2 small::after{content:" · today"}
+  .day .none{font-family:var(--mono);font-size:12px;color:var(--ink-3);padding:6px 0 4px}
+  .it{display:grid;grid-template-columns:70px 1fr auto;gap:1px 14px;align-items:baseline;padding:9px 0;border-top:1px solid var(--line);width:100%;text-align:left;position:relative}
+  .it:hover{background:linear-gradient(90deg,var(--bg-2),transparent 70%)}
+  .it::before{content:"";position:absolute;left:-12px;top:14px;width:3px;height:14px;border-radius:2px;background:var(--line-2)}
+  .it.flight::before{background:var(--sky)} .it.food::before{background:var(--gold)} .it.plan::before{background:var(--sage)} .it.stay::before{background:var(--ink-3)} .it.note::before{background:var(--rust)}
+  .it .t{grid-column:1;grid-row:1;font-family:var(--mono);font-size:12.5px;color:var(--ink-2);white-space:nowrap}
+  .it .t.none{color:var(--ink-3)}
+  .it .w{grid-column:2;grid-row:1;font-size:16px;line-height:1.35;color:var(--ink)}
+  .it .d{grid-column:2;grid-row:2;font-family:var(--mono);font-size:12px;color:var(--ink-2);line-height:1.4}
+  .it .l{grid-column:3;grid-row:1/4;align-self:center;font-family:var(--mono);font-size:15px;color:var(--sky);text-decoration:none;padding:12px 2px 12px 16px;min-width:44px;text-align:right}
+  .it .sub{grid-column:2;font-family:var(--mono);font-size:12px;color:var(--ink-3);line-height:1.4}
+  .it .sub i{font-style:normal;color:var(--sky)}
+  .it .sub .late{color:var(--rust)} .it .sub .ok{color:var(--sage)}
+  .it .p{grid-column:2;grid-row:3;font-family:var(--mono);font-size:11.5px;color:var(--ink-3);letter-spacing:.02em}
+  .it .p.all{color:var(--sage)}
+  .it .p.me{color:var(--ink)}
+  footer{padding:40px 0 60px;font-family:var(--mono);font-size:11px;color:var(--ink-3)}
+  .sync{font-family:var(--mono);font-size:11px;color:var(--ink-3);position:fixed;right:14px;bottom:12px}
+  .sync.err{color:var(--rust)}
+
+  /* edit sheet */
+  .sheet{position:fixed;inset:0;background:rgba(5,6,5,.7);backdrop-filter:blur(6px);display:none;align-items:flex-end;justify-content:center;z-index:10}
+  .sheet.open{display:flex}
+  .panel{width:100%;max-width:640px;background:var(--bg-2);border:1px solid var(--line-2);border-bottom:0;border-radius:16px 16px 0 0;padding:16px 18px 26px;max-height:92vh;overflow:auto}
+  .panel .f{width:100%;background:var(--bg);border:1px solid var(--line-2);border-radius:6px;padding:11px 12px;font-size:16px;margin-bottom:8px;color:var(--ink)}
+  .panel .f:focus{outline:0;border-color:var(--ink-3)}
+  .panel .row{display:flex;gap:8px;margin-bottom:8px}
+  .panel .row .f{margin:0}
+  .seg{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px}
+  .seg button{font-family:var(--mono);font-size:12px;padding:11px 11px;min-height:44px;border:1px solid var(--line-2);border-radius:5px;color:var(--ink-2)}
+  .seg button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .seg button.all.on{background:var(--sage);border-color:var(--sage)}
+  .fl-box{font-family:var(--mono);font-size:12px;color:var(--ink-2);background:var(--bg);border:1px dashed var(--line-2);border-radius:6px;padding:8px 10px;margin-bottom:8px;display:none}
+  .acts{display:flex;gap:8px;align-items:center;margin-top:6px}
+  .acts .save{flex:1;background:var(--ink);color:var(--bg);border-radius:6px;padding:12px;font-weight:600}
+  .acts .x{padding:12px 14px;border:1px solid var(--line-2);border-radius:6px;color:var(--ink-2)}
+  .acts .del{color:var(--rust);padding:12px 8px;margin-right:auto;font-family:var(--mono);font-size:12px}
+  @media (max-width:520px){
+    .mast h1{font-size:38px}
+    .it{grid-template-columns:62px 1fr auto;gap:1px 10px}
+    .it::before{left:-10px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="mast">
+    <h1>Jackson Hole<br><em id="dates"></em></h1>
+    <div class="line" id="homeLine"></div>
+  </div>
+  <div class="who" id="who"></div>
+  <div class="entry" id="entry">
+    <input id="in" placeholder="add anything · “dinner sat 7pm snake river grill”" autocomplete="off" spellcheck="false" enterkeyhint="done">
+    <button class="go" id="go" aria-label="Add">↵</button>
+  </div>
+  <div class="preview" id="preview"></div>
+  <main id="feed"></main>
+  <footer id="foot"></footer>
+</div>
+<div class="sync" id="sync"></div>
+
+<div class="sheet" id="sheet">
+  <div class="panel">
+    <input class="f" id="eTitle" maxlength="80" placeholder="title">
+    <input class="f" id="eWhat" maxlength="140" placeholder="details · flight no, address, anything">
+    <div class="seg" id="eKind"></div>
+    <div class="seg" id="eDay"></div>
+    <div class="row"><input class="f" id="eTime" type="time"><button class="x" id="eAllDay" type="button" style="white-space:nowrap">all day</button></div>
+    <input class="f" id="eLink" placeholder="link" inputmode="url">
+    <div class="seg" id="eWho"></div>
+    <div class="acts"><button class="del" id="eDel">delete</button><button class="x" id="eCancel">cancel</button><button class="save" id="eSave">save</button></div>
+  </div>
+</div>
+
+<script>
+/* ===== config ===== */
+const SUPABASE_URL="https://uchznwahycrtqfajhnau.supabase.co";
+const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjaHpud2FoeWNydHFmYWpobmF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1MDE0MDcsImV4cCI6MjEwNDA3NzQwN30.QuX-_rf8hpDIyFlvGFX_iDWXWZXwm2xuvvTPChmyjYc";
+const TABLE="jh_items";
+const TRIP={start:"2026-10-30",end:"2026-11-05"};
+const PEOPLE=["Matt","Laura","Dan","Gini","Johnny","Noah","Ella","Kaki"];
+const KINDS=["flight","food","plan","stay","note"];
+const HOME={addr:"680 S Cache St · #301",map:"https://www.google.com/maps/search/?api=1&query=680+South+Cache+Street+Jackson+WY+83001",airbnb:"https://www.airbnb.com/rooms/40888906"};
+const gf=(f,d)=>`https://www.google.com/search?q=${encodeURIComponent(f+" "+new Date(d+"T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}))}`;
+const SEED=[
+ {id:"s1",kind:"flight",day:"2026-10-30",time:"12:00",title:"Matt & Laura land",what:"",who:"Matt;Laura",link:"",meta:null},
+ {id:"s2",kind:"stay",day:"2026-10-30",time:"",title:"Matt & Laura at Homewood Suites",what:"Friday night only",who:"Matt;Laura",link:"https://www.google.com/maps/search/?api=1&query=Homewood+Suites+by+Hilton+Jackson+WY",meta:null},
+ {id:"s3",kind:"flight",day:"2026-10-31",time:"09:39",title:"Dan & Gini connect in SLC",what:"DL4152 · ABQ 7:45a → SLC 9:39a",who:"Dan;Gini",link:gf("DL4152","2026-10-31"),meta:null},
+ {id:"s3b",kind:"flight",day:"2026-10-31",time:"12:08",title:"Dan & Gini land",what:"DL2282 · SLC 11:00a → JAC 12:08p",who:"Dan;Gini",link:gf("DL2282","2026-10-31"),meta:null},
+ {id:"s4",kind:"flight",day:"2026-10-31",time:"17:00",title:"Johnny & Noah land",what:"",who:"Johnny;Noah",link:"",meta:null},
+ {id:"s5",kind:"flight",day:"2026-11-01",time:"17:00",title:"Ella & Kaki land",what:"",who:"Ella;Kaki",link:"",meta:null},
+ {id:"s6",kind:"food",day:"2026-11-02",time:"08:30",title:"Breakfast at Nora's",what:"Nora's Fish Creek Inn, Wilson",who:"ALL",link:"https://www.google.com/maps/search/?api=1&query=Nora%27s+Fish+Creek+Inn+Wilson+WY",meta:null},
+ {id:"s7",kind:"flight",day:"2026-11-02",time:"11:00",title:"Matt & Laura fly home",what:"",who:"Matt;Laura",link:"",meta:null},
+ {id:"s8",kind:"plan",day:"2026-11-03",time:"",title:"Grand Teton",what:"driving the park",who:"ALL",link:"https://www.nps.gov/grte/",meta:null},
+ {id:"s9",kind:"plan",day:"2026-11-04",time:"",title:"Grand Teton",what:"driving the park",who:"ALL",link:"https://www.nps.gov/grte/",meta:null},
+];
+
+/* ===== storage ===== */
+const useSB=!!(SUPABASE_URL&&SUPABASE_ANON_KEY);
+async function sb(path,opts={}){
+  const r=await fetch(`${SUPABASE_URL}/rest/v1/${path}`,{...opts,headers:{apikey:SUPABASE_ANON_KEY,Authorization:`Bearer ${SUPABASE_ANON_KEY}`,"Content-Type":"application/json",...(opts.headers||{})}});
+  if(!r.ok) throw new Error(`${r.status} ${await r.text()}`);
+  return r.status===204?null:r.json();
+}
+const LS=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
+const LSset=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
+async function loadAll(){
+  if(useSB){ let rows=await sb(`${TABLE}?select=*`); if(!rows.length){ await sb(TABLE,{method:"POST",headers:{Prefer:"return=minimal"},body:JSON.stringify(SEED)}); rows=await sb(`${TABLE}?select=*`);} return rows; }
+  const raw=LS("jh_items"); if(raw) return JSON.parse(raw); LSset("jh_items",JSON.stringify(SEED)); return SEED.map(x=>({...x}));
+}
+async function upsert(it){ if(useSB) await sb(TABLE,{method:"POST",headers:{Prefer:"resolution=merge-duplicates,return=minimal"},body:JSON.stringify([it])}); else LSset("jh_items",JSON.stringify(items)); }
+async function remove(id){ if(useSB) await sb(`${TABLE}?id=eq.${encodeURIComponent(id)}`,{method:"DELETE"}); else LSset("jh_items",JSON.stringify(items)); }
+/* ===== state / utils ===== */
+let items=[], me=LS("jh_me")||"", editing=null;
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const today=new Date().toLocaleDateString("en-CA");
+const addDays=(d,n)=>{const x=new Date(d+"T12:00:00");x.setDate(x.getDate()+n);return x.toLocaleDateString("en-CA")};
+const DAYS=[]; for(let d=TRIP.start; d<=TRIP.end; d=addDays(d,1)) DAYS.push(d);
+const D=(d,o)=>new Date(d+"T12:00:00").toLocaleDateString("en-US",o);
+const dow=d=>D(d,{weekday:"long"}), dowS=d=>D(d,{weekday:"short"}), md=d=>D(d,{month:"short",day:"numeric"});
+const t12=t=>{if(!t) return ""; const [h,m]=t.split(":").map(Number); const ap=h>=12?"p":"a"; const hh=h%12||12; return `${hh}:${String(m||0).padStart(2,"0")}${ap}`};
+const who=it=>it.who==="ALL"?PEOPLE:(it.who||"").split(";").filter(Boolean);
+const setSync=(t,err)=>{$("sync").textContent=t;$("sync").className="sync"+(err?" err":"")};
+const sortKey=it=>(it.time||"99:99");
+
+/* ===== lazy parser ===== */
+const AIRLINES={DL:"delta",UA:"united",AA:"american",WN:"southwest",AS:"alaska",B6:"jetblue",NK:"spirit",F9:"frontier",SY:"sun country",HA:"hawaiian",OO:"skywest",AC:"air canada"};
+const CODES=Object.keys(AIRLINES).join("|"), NAMES=Object.values(AIRLINES).join("|");
+const FOOD=/\b(breakfast|brunch|lunch|dinner|supper|coffee|drinks?|cocktails?|beers?|bar|grill|cafe|café|bistro|restaurant|pizza|tacos?|sushi|steak|bbq|bakery|reservation|rez|eat|dessert|ice cream)\b/i;
+const EVENING=/\b(dinner|supper|drinks?|cocktails?|beers?|bar|grill|bistro|steak|tonight|night|evening|show|concert|sunset)\b/i;
+const MORNING=/\b(breakfast|coffee|morning|sunrise|church|mass|checkout|check[- ]?out)\b/i;
+const STAY=/\b(airbnb|hotel|suites?|inn|lodge|check[- ]?in|check[- ]?out|checkout|checkin|cabin|motel)\b/i;
+const PLAN=/\b(drive|driving|hike|hiking|park|teton|yellowstone|snow\w*|ski\w*|sled\w*|wildlife|tour|moose|elk|hot ?springs?|rodeo|tram|gondola|float|fish\w*|walk|bike|museum|shop|shopping|refuge|sleigh|village)\b/i;
+const FLIGHT=/\b(flight|flights|fly|flying|lands?|landing|airport|takeoff|depart\w*|arriv\w*)\b/i;
+const WD={sun:0,mon:1,tue:2,tues:2,wed:3,thu:4,thur:4,thurs:4,fri:5,sat:6};
+const MON={jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,sept:9,oct:10,nov:11,dec:12};
+const pad=n=>String(n).padStart(2,"0");
+const clampDay=d=>{ if(!d) return (today>=TRIP.start&&today<=TRIP.end)?today:TRIP.start; if(d<TRIP.start) return TRIP.start; if(d>TRIP.end) return TRIP.end; return d };
+function parse(raw){
+  let s=" "+raw.trim()+" ", r={kind:"note",day:"",time:"",who:[],link:"",flights:[],what:""};
+  const url=s.match(/https?:\/\/\S+|\b[\w-]+\.(?:com|org|net|co|io|ai|gov|me|ly)\b\S*/i);
+  let host="";
+  if(url){ r.link=url[0].startsWith("http")?url[0]:"https://"+url[0]; s=s.replace(url[0]," "); try{host=new URL(r.link).hostname.replace(/^www\./,"")}catch(e){} }
+  for(const m of [...s.matchAll(new RegExp(`\\b(?:(${CODES})|(${NAMES}))\\s?-?#?(\\d{2,4})\\b`,"gi"))]){
+    const code=m[1]?m[1].toUpperCase():Object.keys(AIRLINES).find(k=>AIRLINES[k]===m[2].toLowerCase());
+    r.flights.push(code+m[3]); s=s.replace(m[0]," ");
+  }
+  let m;
+  // day
+  if((m=s.match(/\b(today|tonight)\b/i))){ r.day=today; if(m[1].toLowerCase()==="tonight") r.time="19:00"; s=s.replace(m[0]," "); }
+  else if((m=s.match(/\b(tomorrow|tmrw|tmw|tomorow)\b/i))){ r.day=addDays(today,1); s=s.replace(m[0]," "); }
+  else if((m=s.match(/\b(?:next\s+|this\s+)?(sun|mon|tue|tues|wed|thu|thur|thurs|fri|sat)(?:day|sday|nesday|rsday|urday)?\b/i))){ const w=WD[m[1].toLowerCase()]; r.day=DAYS.find(d=>new Date(d+"T12:00:00").getDay()===w)||""; s=s.replace(m[0]," "); }
+  else if((m=s.match(/\b(jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\.?\s+(\d{1,2})(?:st|nd|rd|th)?\b/i))){ r.day=`2026-${pad(MON[m[1].toLowerCase().slice(0,4)]||MON[m[1].toLowerCase().slice(0,3)])}-${pad(+m[2])}`; s=s.replace(m[0]," "); }
+  else if((m=s.match(/\b(\d{1,2})\/(\d{1,2})\b/))){ r.day=`2026-${pad(+m[1])}-${pad(+m[2])}`; s=s.replace(m[0]," "); }
+  s=s.replace(/\b(\d{1,2})\/(\d{1,2})\b/g," "); // second date form, drop
+  // time
+  const evening=EVENING.test(s), morning=MORNING.test(s);
+  const guessAP=h=>{ if(h>12) return h; if(h===12) return 12; if(morning) return h; if(evening) return h+12; return h<=6?h+12:h };
+  if((m=s.match(/\b(\d{1,2})(?::?(\d{2}))?\s*(am|pm|a\.m\.|p\.m\.|a|p)\b/i))&&(!m[2]||+m[2]<60)){ let h=+m[1]%12; if(m[3][0].toLowerCase()==="p") h+=12; r.time=`${pad(h)}:${m[2]||"00"}`; s=s.replace(m[0]," "); }
+  else if((m=s.match(/\b(\d{1,2}):(\d{2})\b/))){ r.time=`${pad(guessAP(+m[1]))}:${m[2]}`; s=s.replace(m[0]," "); }
+  else if((m=s.match(/\b(\d{1,2})(\d{2})\b/))&&+m[1]<=12&&+m[2]<60&&m[0].length>=3){ r.time=`${pad(guessAP(+m[1]))}:${m[2]}`; s=s.replace(m[0]," "); }
+  else if((m=s.match(/\bnoon\b/i))){ r.time="12:00"; s=s.replace(m[0]," "); }
+  else if((m=s.match(/\bmidnight\b/i))){ r.time="00:00"; s=s.replace(m[0]," "); }
+  else if(!r.time&&(m=s.match(/(?:^|\s|@)(\d{1,2})(?=\s*$|\s+(?:with|w\/?|for|and|&|everyone|all|me|[A-Z]))/))&&+m[1]>=1&&+m[1]<=12){ r.time=`${pad(guessAP(+m[1]))}:00`; s=s.replace(m[0]," "); }
+  else if(!r.time&&(m=s.match(/\b(night|evening)\b/i))){ r.time="19:00"; s=s.replace(m[0]," "); }
+  else if(!r.time&&(m=s.match(/\b(morning|early)\b/i))){ r.time="09:00"; s=s.replace(m[0]," "); }
+  // people (don't strip names from the text unless they're a trailing "with …" tail)
+  if(/\b(everyone|everybody|all of us|all)\b/i.test(s)) r.who=["ALL"];
+  for(const p of PEOPLE) if(new RegExp(`\\b${p}(?:'s)?\\b`,"i").test(s)&&!r.who.includes("ALL")) r.who.push(p);
+  if((/\b(me|my|i|myself|us|we)\b/i.test(s)||(/\b(with|w\/?)\s/i.test(s)&&r.who.length))&&me&&!r.who.includes("ALL")&&!r.who.includes(me)) r.who.push(me);
+  const NM=`(?:${PEOPLE.join("|")}|me|everyone|everybody|all of us|all|us)`;
+  s=s.replace(new RegExp(`\\s+(?:with|w\\/?|for|&|and|\\+|,)?\\s*${NM}(?:\\s*(?:and|&|\\+|,)\\s*${NM})*\\s*$`,"i")," ");
+  s=s.replace(new RegExp(`^\\s*${NM}(?:\\s*(?:and|&|\\+|,)\\s*${NM})*\\s+(?:will|are|is)?\\s*`,"i")," ");
+  // kind
+  const kt=s+" "+host.replace(/[.-]/g," ").replace(/(grill|bistro|cafe|pizza|bar|bakery|steak|sushi|tacos?|kitchen|eatery|dining|restaurant|diner|brew)/gi," $1 ");
+  if(r.flights.length) r.kind="flight"; else if(FOOD.test(kt)) r.kind="food"; else if(FLIGHT.test(kt)) r.kind="flight"; else if(STAY.test(kt)) r.kind="stay"; else if(PLAN.test(kt)) r.kind="plan";
+  // tidy
+  s=s.replace(/[@]/g," ").replace(/\b(then|next|this|on|at|re:|re)\s*(?=\s|$)/gi,m2=>/^(then|next|this)$/i.test(m2.trim())?" ":m2);
+  s=s.replace(/\s+/g," ").trim().replace(/^(?:at|on|with|and|for|then|,|&|\+|-|–)\s+/i,"").replace(/\s+(?:at|on|with|w|w\/|and|for|the|in|then|,|&|\+|-|–)$/i,"").replace(/^[,\-–&+]\s*|\s*[,\-–&+]$/g,"").trim();
+  r.what=s;
+  if(!r.what&&host) r.what=host;
+  if(!r.what&&r.flights.length) r.what=r.flights.join(" → ");
+  if(!r.who.length) r.who=r.kind==="flight"&&me?[me]:["ALL"];
+  r.day=clampDay(r.day);
+  const names=r.who[0]==="ALL"?"Everyone":r.who.join(" & ");
+  const cap=t=>t.charAt(0).toUpperCase()+t.slice(1);
+  if(r.kind==="flight"){
+    const home=/\b(home|fly out|leave|leaving|depart\w*|back)\b/i.test(raw), conn=/\b(connect\w*|layover|then)\b/i.test(raw);
+    r.title=`${names} ${home?"fly home":conn?"connect":"land"}`; r.detail=r.what===r.flights.join(" → ")||!r.what?"":cap(r.what);
+  } else { r.title=cap(r.what); r.detail=""; }
+  return r;
+}
+
+/* ===== render ===== */
+function render(){
+  $("dates").textContent=`${md(TRIP.start)} – ${md(TRIP.end)}`;
+  $("homeLine").innerHTML=`<span>${esc(HOME.addr)}</span><a href="${HOME.map}" target="_blank" rel="noopener">map</a><a href="${HOME.airbnb}" target="_blank" rel="noopener">airbnb</a>`;
+  $("who").innerHTML=`<span class="k">I AM</span>`+PEOPLE.map(p=>`<button class="${p===me?"on":""}" data-me="${p}">${p}</button>`).join("");
+  $("feed").innerHTML=DAYS.map(d=>{
+    const list=items.filter(i=>i.day===d).sort((a,b)=>sortKey(a).localeCompare(sortKey(b))||(a.title||a.what||"").localeCompare(b.title||b.what||""));
+    return `<section class="day ${d===today?"today":""}" id="d-${d}"><h2>${dow(d)}<small>${md(d)}</small></h2>${list.length?list.map(row).join(""):`<div class="none">—</div>`}</section>`;
+  }).join("")+(()=>{const o=items.filter(i=>!DAYS.includes(i.day)).sort((a,b)=>a.day.localeCompare(b.day)); return o.length?`<section class="day"><h2>Other<small>outside the trip</small></h2>${o.map(row).join("")}</section>`:""})();
+  $("foot").textContent="tap anything to change it";
+}
+function row(it){
+  const ppl=who(it), all=it.who==="ALL";
+  const t=it.time?t12(it.time):"";
+  const pcls=all?"all":ppl.includes(me)?"me":"";
+  const lk=it.link?`<a class="l" href="${esc(it.link)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" aria-label="open link">↗</a>`:"";
+  return `<button class="it ${esc(it.kind)}" data-id="${esc(it.id)}"><span class="t ${t?"":"none"}">${t||"—"}</span><span class="w">${esc(it.title||it.what)}</span>${lk}${it.title&&it.what?`<span class="d">${esc(it.what)}</span>`:""}<span class="p ${pcls}">${all?"everyone":esc(ppl.join(" · "))}</span></button>`;
+}
+
+/* ===== entry ===== */
+const inp=$("in"), entry=$("entry"), prev=$("preview");
+function showPreview(){
+  const v=inp.value.trim(); entry.classList.toggle("has",!!v);
+  if(!v){prev.innerHTML="";return}
+  const r=parse(v);
+  prev.innerHTML=[`<span class="kind">${r.kind}</span>`,`<b>${dowS(r.day)} ${md(r.day)}</b>`,r.time?`<b>${t12(r.time)}</b>`:"all day",
+    r.flights.length?`<span class="fl">${r.flights.join(", ")}</span>`:"",r.link?"link":"",r.who[0]==="ALL"?"everyone":r.who.join(" · "),r.title?`“${esc(r.title)}”`:""].filter(Boolean).join("<span>·</span>");
+}
+inp.addEventListener("input",showPreview);
+inp.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();submitEntry()}});
+$("go").onclick=submitEntry;
+const names=r=>r.who[0]==="ALL"?"Everyone":r.who.join(" & ");
+async function submitEntry(){
+  const v=inp.value.trim(); if(!v) return;
+  if(!me){ $("who").classList.add("nudge"); setTimeout(()=>$("who").classList.remove("nudge"),1500); return }
+  const r=parse(v); if(!r.title){ inp.focus(); return } inp.value=""; showPreview();
+  const whoStr=r.who[0]==="ALL"?"ALL":r.who.join(";");
+  const made=[];
+  if(r.flights.length){
+    for(const f of r.flights) made.push({id:"i"+Date.now().toString(36)+Math.random().toString(36).slice(2,5),kind:"flight",day:r.day,time:r.flights.length===1?r.time:"",title:r.flights.length>1&&f!==r.flights[r.flights.length-1]?`${names(r)} connect`:r.title,what:r.detail?`${f} · ${r.detail}`:f,who:whoStr,link:r.link||gf(f,r.day),meta:null});
+  } else made.push({id:"i"+Date.now().toString(36)+Math.random().toString(36).slice(2,5),kind:r.kind,day:r.day,time:r.time,title:r.title,what:r.detail,who:whoStr,link:r.link,meta:null});
+  items.push(...made); render();
+  for(const it of made){ try{ await upsert(it); setSync("saved") }catch(e){ setSync("not saved",true) } }
+}
+/* ===== edit sheet ===== */
+const sheet=$("sheet"); let eKind,eDay,eWho;
+function seg(id,opts,cur,attr){ $(id).innerHTML=opts.map(([v,l,c])=>`<button type="button" class="${c||""} ${(cur.has?cur.has(v):cur===v)?"on":""}" data-${attr}="${v}">${l}</button>`).join("") }
+function renderSheet(){
+  seg("eKind",KINDS.map(k=>[k,k]),eKind,"kind");
+  seg("eDay",DAYS.map(d=>[d,`${dowS(d)} ${md(d)}`]),eDay,"day");
+  seg("eWho",[["ALL","everyone","all"],...PEOPLE.map(p=>[p,p])],eWho,"who");
+}
+function openSheet(it){
+  editing=it; eKind=it.kind; eDay=it.day; eWho=new Set(it.who==="ALL"?["ALL"]:who(it));
+  $("eTitle").value=it.title||""; $("eWhat").value=it.what||""; $("eTime").value=it.time||""; $("eLink").value=it.link||"";
+  renderSheet(); sheet.classList.add("open"); setTimeout(()=>$("eTitle").focus(),30);
+}
+function closeSheet(){sheet.classList.remove("open"); if(editing){const el=document.querySelector(`[data-id="${CSS.escape(editing.id)}"]`); el&&el.focus({preventScroll:true})}}
+sheet.addEventListener("click",e=>{
+  if(e.target===sheet){closeSheet();return}
+  const k=e.target.closest("[data-kind]"),d=e.target.closest("[data-day]"),w=e.target.closest("[data-who]");
+  if(k){eKind=k.dataset.kind;renderSheet()} if(d){eDay=d.dataset.day;renderSheet()}
+  if(w){const v=w.dataset.who; if(v==="ALL") eWho=eWho.has("ALL")?new Set():new Set(["ALL"]); else {eWho.delete("ALL"); eWho.has(v)?eWho.delete(v):eWho.add(v)} renderSheet()}
+});
+$("eAllDay").onclick=()=>{$("eTime").value=""};
+$("eCancel").onclick=closeSheet;
+$("eSave").onclick=async()=>{
+  const title=$("eTitle").value.trim(), what=$("eWhat").value.trim(); if(!title){$("eTitle").focus();return}
+  let link=$("eLink").value.trim(); if(link&&!/^https?:\/\//i.test(link)) link="https://"+link;
+  Object.assign(editing,{kind:eKind,day:eDay,time:$("eTime").value||"",title,what,who:eWho.has("ALL")?"ALL":[...eWho].join(";"),link});
+  render(); closeSheet(); try{ await upsert(editing); setSync("saved") }catch(e){ setSync("not saved",true) }
+};
+$("eDel").onclick=async()=>{ if(!confirm("Delete?")) return; const id=editing.id; items=items.filter(x=>x.id!==id); render(); closeSheet(); try{await remove(id);setSync("deleted")}catch(e){setSync("not saved",true)} };
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeSheet()});
+$("who").addEventListener("click",e=>{const b=e.target.closest("[data-me]"); if(!b) return; me=b.dataset.me; LSset("jh_me",me); render()});
+$("feed").addEventListener("click",e=>{const c=e.target.closest("[data-id]"); if(!c) return; const it=items.find(x=>x.id===c.dataset.id); if(it) openSheet(it)});
+
+/* ===== go ===== */
+(async()=>{
+  try{ items=await loadAll(); setSync("") }catch(e){ console.error(e); items=SEED.map(x=>({...x})); setSync("offline",true) }
+  render();
+  const t=$("d-"+today); if(t) setTimeout(()=>t.scrollIntoView({behavior:"smooth",block:"start"}),300);
+})();
+setInterval(async()=>{
+  if(document.hidden||sheet.classList.contains("open")||inp.value||!useSB) return;
+  try{ const rows=await sb(`${TABLE}?select=*`); if(JSON.stringify(rows)!==JSON.stringify(items)){items=rows;render()} }catch(e){}
+},8000);
+</script>
+</body>
+</html>
